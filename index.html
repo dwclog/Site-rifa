@@ -1,38 +1,63 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Rifa UMADAR 2025</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rifa Umadar 2025</title>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div class="container">
-    <div class="content">
-      <div class="logo">
-        <img src="logo-umadar.png" alt="Logo UMADAR">
-      </div>
-      <h2>RIFA UMADAR 2025</h2>
-      <p class="rules">Regras da rifa aqui</p>
 
-      <form>
-        <input type="text" placeholder="Nome completo" required />
-        <input type="tel" placeholder="WhatsApp" required />
-        <input type="number" placeholder="Número desejado" required />
-        <button type="button" class="checkout-button" onclick="irParaPagamento()">Pagar com PIX - R$0,01</button>
-      </form>
+  <div class="content">
+    <div class="logo">
+      <img src="logo-umadar.png" alt="Logo Umadar"/>
+    </div>
 
-      <div class="whatsapp">
-        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384007.png" alt="WhatsApp">
-        <span>Entre em contato: <strong>67 00000-0000</strong></span>
-      </div>
+    <h2>RIFA UMADAR 2025</h2>
+    <div class="rules">Regras da rifa aqui</div>
+
+    <input id="nome" type="text" placeholder="Nome completo" required />
+    <input id="telefone" type="tel" placeholder="WhatsApp" required />
+    <input id="quantidade" type="number" min="1" placeholder="Quantidade de rifas" oninput="atualizarValor()" />
+
+    <p id="erro" style="color:red; display:none; font-size: 14px; margin-top: 5px;"></p>
+
+    <button id="botaoPagamento" class="checkout-button" onclick="validarFormulario()">
+      Pagar com PIX - R$0,01
+    </button>
+
+    <div class="whatsapp">
+      <img src="https://cdn-icons-png.flaticon.com/512/1384/1384007.png" alt="WhatsApp"/>
+      <span>Entre em contato: <strong>67 00000-0000</strong></span>
     </div>
   </div>
 
   <script>
-    function irParaPagamento() {
-      window.location.href = "pagamento.html";
+    function atualizarValor() {
+      const quantidade = parseInt(document.getElementById('quantidade').value) || 1;
+      const valorUnitario = 0.01;
+      const total = (quantidade * valorUnitario).toFixed(2);
+      const botao = document.getElementById('botaoPagamento');
+      botao.textContent = `Pagar com PIX - R$${total}`;
+    }
+
+    function validarFormulario() {
+      const nome = document.getElementById('nome').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
+      const quantidade = parseInt(document.getElementById('quantidade').value) || 1;
+      const valorTotal = (quantidade * 0.01).toFixed(2);
+      const erro = document.getElementById('erro');
+
+      if (!nome || !telefone) {
+        erro.style.display = "block";
+        erro.innerText = "Por favor, preencha seu nome e WhatsApp para continuar.";
+        return;
+      }
+
+      erro.style.display = "none";
+      window.location.href = `pagamento.html?valor=${valorTotal}&nome=${encodeURIComponent(nome)}&tel=${encodeURIComponent(telefone)}&qtd=${quantidade}`;
     }
   </script>
+
 </body>
 </html>

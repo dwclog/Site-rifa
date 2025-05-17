@@ -31,6 +31,26 @@
       max-width: 400px;
     }
 
+    .dados-compra {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    .dados-compra h3 {
+      margin-bottom: 10px;
+      color: #3a005c;
+      font-size: 16px;
+    }
+
+    .dados-compra p {
+      margin: 5px 0;
+      font-size: 13px;
+    }
+
     .box h2 {
       margin-bottom: 15px;
       font-size: 22px;
@@ -60,29 +80,87 @@
     .box a {
       display: inline-block;
       text-decoration: none;
-      background-color: #00c853;
+      background-color: #3a005c;
       color: white;
       padding: 10px 20px;
       border-radius: 8px;
       font-size: 14px;
+      transition: background-color 0.3s;
     }
 
     .box a:hover {
-      background-color: #00b34a;
+      background-color: #52007a;
     }
   </style>
 </head>
 <body>
   <div class="box">
     <h2>Pagamento via PIX</h2>
+    
+    <div id="dados-compra">
+      <!-- Dados serão inseridos via JavaScript -->
+    </div>
+
     <p>Escaneie o QR Code ou copie o código abaixo:</p>
 
-    <!-- Substitua pelo seu QR Code gerado -->
-    <img src="qrcode-pix.png" alt="QR Code PIX">
+    <!-- QR Code será gerado dinamicamente -->
+    <img id="qrcode" src="qrcode-pix.png" alt="QR Code PIX">
 
-    <textarea readonly>00020126330014br.gov.bcb.pix01110781655714052040000530398654040.015802BR5922DEIVID WESLLEY PEREIRA6010AQUIDAUANA62070503***63048486</textarea>
+    <!-- Código PIX será atualizado dinamicamente -->
+    <textarea id="codigo-pix" readonly>Carregando dados de pagamento...</textarea>
 
     <a href="index.html">Voltar</a>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Captura os parâmetros da URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const valor = parseFloat(urlParams.get('valor')) || 0.01;
+      const nome = decodeURIComponent(urlParams.get('nome') || '');
+      const telefone = decodeURIComponent(urlParams.get('tel') || '');
+      const quantidade = urlParams.get('qtd') || '1';
+
+      // Exibe os dados da compra
+      document.getElementById('dados-compra').innerHTML = `
+        <div class="dados-compra">
+          <h3>Dados da Compra</h3>
+          <p><strong>Nome:</strong> ${nome}</p>
+          <p><strong>WhatsApp:</strong> ${telefone}</p>
+          <p><strong>Quantidade:</strong> ${quantidade} rifa(s)</p>
+          <p><strong>Valor Total:</strong> R$${valor.toFixed(2)}</p>
+        </div>
+      `;
+
+      // Gera o payload PIX dinâmico (modelo BR Code)
+      function gerarCodigoPix(valor, chavePix) {
+        const valorFormatado = valor.toFixed(2).replace('.', '');
+        return `00020126580014br.gov.bcb.pix0136${chavePix}52040000530398654${valorFormatado.length}${valorFormatado}5802BR5925NOME DA SUA EMPRESA6005CIDADE6108CEP62370503***6304`;
+      }
+
+      // SUAS INFORMAÇÕES PIX AQUI (SUBSTITUA PELOS SEUS DADOS REAIS)
+      const CHAVE_PIX = '123e4567-e12b-12d1-a456-426655440000'; // Sua chave PIX
+      const NOME_RECEBEDOR = 'SUA EMPRESA/ASSOCIAÇÃO';
+      const CIDADE_RECEBEDOR = 'SUA CIDADE';
+      const CEP_RECEBEDOR = '00000000';
+
+      // Gera o código PIX com o valor dinâmico
+      const payloadPix = gerarCodigoPix(valor, CHAVE_PIX);
+      document.getElementById('codigo-pix').value = payloadPix;
+
+      // Atualiza o QR Code (substitua por sua lógica de geração real)
+      // EM PRODUÇÃO: Use uma API para gerar QR Code dinâmico ou uma imagem pré-configurada
+      document.getElementById('qrcode').alt = `QR Code PIX - R$ ${valor.toFixed(2)}`;
+      
+      // Se estiver usando uma API de QR Code dinâmico:
+      // document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payloadPix)}`;
+    });
+
+    // Validação se há parâmetros na URL
+    if(!window.location.search) {
+      alert('Dados de compra não encontrados! Redirecionando...');
+      window.location.href = 'index.html';
+    }
+  </script>
 </body>
 </html>

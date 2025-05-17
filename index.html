@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rifa UMADAR 2025</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="content">
+      <div class="logo">
+        <img src="logo-umadar.png" alt="Logo UMADAR">
+      </div>
+      <h2>RIFA UMADAR 2025</h2>
+      <p class="rules">Regras da rifa aqui</p>
+
+      <form>
+        <input type="text" placeholder="Nome completo" required />
+        <input type="tel" placeholder="WhatsApp" required />
+        <input type="number" placeholder="Número desejado" required />
+        <button type="button" class="checkout-button" onclick="irParaPagamento()">Pagar com PIX - R$0,01</button>
+      </form>
+
+      <div class="whatsapp">
+        <img src="https://cdn-icons-png.flaticon.com/512/1384/1384007.png" alt="WhatsApp">
+        <span>Entre em contato: <strong>67 00000-0000</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function irParaPagamento() {
+      window.location.href = "pagamento.html";
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pagamento PIX</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f2f2f2;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .box {
+      background: white;
+      padding: 30px 20px;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .box h2 {
+      margin-bottom: 15px;
+      font-size: 22px;
+    }
+
+    .box p {
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .box img {
+      width: 220px;
+      margin-bottom: 20px;
+    }
+
+    .box textarea {
+      width: 100%;
+      height: 100px;
+      resize: none;
+      font-size: 14px;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    .box a {
+      display: inline-block;
+      text-decoration: none;
+      background-color: #00c853;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .box a:hover {
+      background-color: #00b34a;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>Pagamento via PIX</h2>
+    <p>Escaneie o QR Code ou copie o código abaixo:</p>
+
+    <!-- Substitua pelo seu QR Code gerado -->
+    <img src="qrcode-pix.png" alt="QR Code PIX">
+
+    <textarea readonly>00020126330014br.gov.bcb.pix01110781655714052040000530398654040.015802BR5922DEIVID WESLLEY PEREIRA6010AQUIDAUANA62070503***63048486</textarea>
+
+    <a href="index.html">Voltar</a>
+  </div>
+</body>
+</html>

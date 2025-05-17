@@ -4,16 +4,12 @@
   <meta charset="UTF-8">
   <title>Pagamento PIX</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.rawgit.com/davidshimjs/qrcodejs/gh-pages/qrcode.min.js"></script>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    /* ...estilos anteriores mantidos... */
     body {
-      background-color: #f2f2f2;
       font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -21,146 +17,162 @@
       padding: 20px;
     }
 
-    .box {
+    .payment-box {
       background: white;
-      padding: 30px 20px;
-      border-radius: 10px;
-      text-align: center;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
       width: 100%;
       max-width: 400px;
+      text-align: center;
     }
 
-    .dados-compra {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      text-align: left;
-      font-size: 14px;
+    #qrcode {
+      margin: 20px auto;
+      width: 200px;
+      height: 200px;
     }
 
-    .dados-compra h3 {
-      margin-bottom: 10px;
-      color: #3a005c;
-      font-size: 16px;
-    }
-
-    .dados-compra p {
-      margin: 5px 0;
-      font-size: 13px;
-    }
-
-    .box h2 {
-      margin-bottom: 15px;
-      font-size: 22px;
-    }
-
-    .box p {
-      font-size: 14px;
-      margin-bottom: 20px;
-    }
-
-    .box img {
-      width: 220px;
-      margin-bottom: 20px;
-    }
-
-    .box textarea {
+    .pix-code textarea {
       width: 100%;
-      height: 100px;
-      resize: none;
-      font-size: 14px;
-      padding: 10px;
-      margin-bottom: 20px;
-      border: 1px solid #ccc;
+      padding: 12px;
       border-radius: 8px;
+      resize: none;
+      font-size: 12px;
+      height: 100px;
     }
 
-    .box a {
+    .copy-btn {
+      margin-top: 10px;
+      background: #3a005c;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .back-btn {
+      margin-top: 20px;
       display: inline-block;
       text-decoration: none;
-      background-color: #3a005c;
-      color: white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 14px;
-      transition: background-color 0.3s;
+      color: #3a005c;
+      font-weight: bold;
     }
 
-    .box a:hover {
-      background-color: #52007a;
+    .info {
+      font-size: 14px;
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
-  <div class="box">
+  <div class="payment-box">
     <h2>Pagamento via PIX</h2>
-    
-    <div id="dados-compra">
-      <!-- Dados serão inseridos via JavaScript -->
+    <p class="info" id="dados-cliente"></p>
+
+    <div id="qrcode"></div>
+
+    <div class="pix-code">
+      <textarea id="pix-code" readonly></textarea>
+      <button class="copy-btn" onclick="copyPixCode()">Copiar Código</button>
     </div>
 
-    <p>Escaneie o QR Code ou copie o código abaixo:</p>
-
-    <!-- QR Code será gerado dinamicamente -->
-    <img id="qrcode" src="qrcode-pix.png" alt="QR Code PIX">
-
-    <!-- Código PIX será atualizado dinamicamente -->
-    <textarea id="codigo-pix" readonly>Carregando dados de pagamento...</textarea>
-
-    <a href="index.html">Voltar</a>
+    <a href="index.html" class="back-btn">← Voltar</a>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // Captura os parâmetros da URL
+    const PIX_CONFIG = {
+      chave: '07816557140',
+      nome: 'Deivid Weslley Pereira da',
+      cidade: 'Aquidauana',
+      cep: '79200-000',
+      txid: '***'
+    };
+
+    function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
-      const valor = parseFloat(urlParams.get('valor')) || 0.01;
-      const nome = decodeURIComponent(urlParams.get('nome') || '');
-      const telefone = decodeURIComponent(urlParams.get('tel') || '');
-      const quantidade = urlParams.get('qtd') || '1';
+      return urlParams.get(param);
+    }
 
-      // Exibe os dados da compra
-      document.getElementById('dados-compra').innerHTML = `
-        <div class="dados-compra">
-          <h3>Dados da Compra</h3>
-          <p><strong>Nome:</strong> ${nome}</p>
-          <p><strong>WhatsApp:</strong> ${telefone}</p>
-          <p><strong>Quantidade:</strong> ${quantidade} rifa(s)</p>
-          <p><strong>Valor Total:</strong> R$${valor.toFixed(2)}</p>
-        </div>
-      `;
+    function calculateCRC16(payload) {
+      let crc = 0xFFFF;
+      for (let i = 0; i < payload.length; i++) {
+        crc ^= payload.charCodeAt(i) << 8;
+        for (let j = 0; j < 8; j++) {
+          crc = (crc & 0x8000) ? (crc << 1) ^ 0x1021 : crc << 1;
+        }
+      }
+      return crc & 0xFFFF;
+    }
 
-      // Gera o payload PIX dinâmico (modelo BR Code)
-      function gerarCodigoPix(valor, chavePix) {
-        const valorFormatado = valor.toFixed(2).replace('.', '');
-        return `00020126580014br.gov.bcb.pix0136${chavePix}52040000530398654${valorFormatado.length}${valorFormatado}5802BR5925NOME DA SUA EMPRESA6005CIDADE6108CEP62370503***6304`;
+    function generateValidPixPayload(valor) {
+      const formatNumber = (n) => n.toFixed(2);
+      const valorFormatado = formatNumber(valor);
+
+      function montaCampo(id, valor) {
+        return id + valor.length.toString().padStart(2, '0') + valor;
       }
 
-      // SUAS INFORMAÇÕES PIX AQUI (SUBSTITUA PELOS SEUS DADOS REAIS)
-      const CHAVE_PIX = '123e4567-e12b-12d1-a456-426655440000'; // Sua chave PIX
-      const NOME_RECEBEDOR = 'SUA EMPRESA/ASSOCIAÇÃO';
-      const CIDADE_RECEBEDOR = 'SUA CIDADE';
-      const CEP_RECEBEDOR = '00000000';
+      // Merchant Account Information (campo 26 com subcampos)
+      const merchantAccountInfo = [
+        montaCampo('00', 'BR.GOV.BCB.PIX'), // GUI
+        montaCampo('01', PIX_CONFIG.chave) // Chave Pix
+        // montaCampo('02', 'descrição') // Descrição opcional
+      ].join('');
+      const campo26 = montaCampo('26', merchantAccountInfo);
 
-      // Gera o código PIX com o valor dinâmico
-      const payloadPix = gerarCodigoPix(valor, CHAVE_PIX);
-      document.getElementById('codigo-pix').value = payloadPix;
+      // Campos principais do payload Pix
+      let payloadSemCRC = [
+        montaCampo('00', '01'),                      // Payload Format Indicator
+        campo26,
+        montaCampo('52', '0000'),                    // Merchant Category Code
+        montaCampo('53', '986'),                     // Moeda BRL
+        montaCampo('54', valorFormatado),            // Valor
+        montaCampo('58', 'BR'),                      // País
+        montaCampo('59', PIX_CONFIG.nome),           // Nome do recebedor
+        montaCampo('60', PIX_CONFIG.cidade),         // Cidade
+        montaCampo('61', PIX_CONFIG.cep),            // CEP
+        montaCampo('62', montaCampo('05', PIX_CONFIG.txid)), // TXID
+        '6304' // Campo do CRC (será completado depois)
+      ].join('');
 
-      // Atualiza o QR Code (substitua por sua lógica de geração real)
-      // EM PRODUÇÃO: Use uma API para gerar QR Code dinâmico ou uma imagem pré-configurada
-      document.getElementById('qrcode').alt = `QR Code PIX - R$ ${valor.toFixed(2)}`;
-      
-      // Se estiver usando uma API de QR Code dinâmico:
-      // document.getElementById('qrcode').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(payloadPix)}`;
-    });
-
-    // Validação se há parâmetros na URL
-    if(!window.location.search) {
-      alert('Dados de compra não encontrados! Redirecionando...');
-      window.location.href = 'index.html';
+      // Calcular o CRC16
+      const crc = calculateCRC16(payloadSemCRC).toString(16).toUpperCase().padStart(4, '0');
+      return payloadSemCRC + crc;
     }
+
+
+    function gerarQRCodeComValorDaURL() {
+      const valor = parseFloat(getQueryParam('valor')) || 0.01;
+      const nome = decodeURIComponent(getQueryParam('nome') || '');
+      const tel = decodeURIComponent(getQueryParam('tel') || '');
+      const qtd = getQueryParam('qtd') || 1;
+
+      document.getElementById('dados-cliente').textContent = `Nome: ${nome} | WhatsApp: ${tel} | Quantidade: ${qtd}`;
+
+      const payload = generateValidPixPayload(valor);
+      document.getElementById('pix-code').value = payload;
+
+      const qrCodeContainer = document.getElementById('qrcode');
+      qrCodeContainer.innerHTML = '';
+
+      new QRCode(qrCodeContainer, {
+        text: payload,
+        width: 200,
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+
+    function copyPixCode() {
+      const textarea = document.getElementById("pix-code");
+      textarea.select();
+      document.execCommand("copy");
+      alert("Código PIX copiado!");
+    }
+
+    document.addEventListener('DOMContentLoaded', gerarQRCodeComValorDaURL);
   </script>
 </body>
 </html>
